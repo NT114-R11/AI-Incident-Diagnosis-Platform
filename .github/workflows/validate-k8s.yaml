@@ -1,0 +1,49 @@
+
+name: Validate Kubernetes Manifests
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "k8s/**"
+      - ".github/workflows/validate-k8s.yaml"
+
+  pull_request:
+    branches:
+      - main
+    paths:
+      - "k8s/**"
+      - ".github/workflows/validate-k8s.yaml"
+
+  workflow_dispatch:
+
+jobs:
+  validate:
+    name: Validate Kustomize
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup kubectl
+        uses: azure/setup-kubectl@v4
+
+      - name: Validate Local Overlay
+        run: |
+          kubectl kustomize k8s/overlays/local \
+            > /tmp/local-rendered.yaml
+
+      - name: Validate Production Overlay
+        run: |
+          kubectl kustomize k8s/overlays/production \
+            > /tmp/production-rendered.yaml
+
+      - name: Show Resource Summary
+        run: |
+          echo "Local resources:"
+          grep -c '^kind:' /tmp/local-rendered.yaml
+
+          echo "Production resources:"
+          grep -c '^kind:' /tmp/production-rendered.yaml
