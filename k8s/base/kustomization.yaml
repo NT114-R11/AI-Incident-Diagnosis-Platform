@@ -11,6 +11,9 @@ resources:
   - postgres/db-pvc.yaml
   - postgres/db-deployment.yaml
   - postgres/db-service.yaml
+  
+  # Ingress
+  - ingress/voting-ingress.yaml
 
   # Redis
   - redis/redis-deployment.yaml

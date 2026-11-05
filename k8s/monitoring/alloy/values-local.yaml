@@ -1,0 +1,112 @@
+
+alloy:
+  configMap:
+    create: true
+    content: |
+      discovery.kubernetes "pods" {
+        role = "pod"
+
+        namespaces {
+          names = ["voting-app"]
+        }
+      }
+
+      discovery.relabel "pod_logs" {
+        targets = discovery.kubernetes.pods.targets
+
+        rule {
+          source_labels = ["__meta_kubernetes_namespace"]
+          target_label  = "namespace"
+        }
+
+        rule {
+          source_labels = ["__meta_kubernetes_pod_name"]
+          target_label  = "pod"
+        }
+
+        rule {
+          source_labels = ["__meta_kubernetes_pod_container_name"]
+          target_label  = "container"
+        }
+
+        rule {
+          source_labels = ["__meta_kubernetes_pod_node_name"]
+          target_label  = "node"
+        }
+      }
+
+      loki.source.kubernetes "pod_logs" {
+        targets    = discovery.relabel.pod_logs.output
+        forward_to = [loki.process.pod_logs.receiver]
+      }
+
+      loki.process "pod_logs" {
+        forward_to = [loki.write.local.receiver]
+
+        stage.cri {}
+
+        stage.label_keep {
+          values = ["namespace", "pod", "container", "node"]
+        }
+      }
+
+      loki.write "local" {
+        endpoint {
+          url = "http://loki-gateway.monitoring.svc.cluster.local/loki/api/v1/push"
+          headers = {
+            "X-Scope-OrgID" = "fake",
+          }
+        }
+      }
+
+  clustering:
+    enabled: false
+
+  stabilityLevel: generally-available
+
+  storagePath: /tmp/alloy
+
+  enableHttpServerPort: true
+  listenAddr: 0.0.0.0
+  listenPort: 12345
+
+  mounts:
+    varlog: false
+    dockercontainers: false
+    extra: []
+
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+
+controller:
+  type: daemonset
+
+  hostNetwork: false
+  hostPID: false
+  dnsPolicy: ClusterFirst
+
+rbac:
+  create: true
+  namespaces: []
+
+  rules:
+    - apiGroups: [""]
+      resources:
+        - pods
+        - pods/log
+        - namespaces
+      verbs:
+        - get
+        - list
+        - watch
+
+
+
+serviceAccount:
+  create: true
+  automountServiceAccountToken: true

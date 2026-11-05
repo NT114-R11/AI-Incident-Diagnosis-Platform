@@ -15,8 +15,9 @@ spec:
         app: vote
     spec:
       containers:
-      - image: dockersamples/examplevotingapp_vote
+      - image: ghcr.io/nt114-r11/ai-incident-diagnosis-platform-vote:latest
         name: vote
+        imagePullPolicy: Always
         ports:
         - containerPort: 80
           name: vote

@@ -1,0 +1,16 @@
+controller:
+  kind: deployment
+  replicaCount: 1
+
+  hostNetwork: true #NGINX Ingress Controller needs to run in host network mode to bind to ports 80 and 443..
+  dnsPolicy: ClusterFirstWithHostNet 
+
+  nodeSelector: # Use worker node with label ingress-ready: "true" to run the controller
+    ingress-ready: "true"
+
+  ingressClass: # Create a new ingressClass with name nginx and set it as default ingressClass 
+    name: nginx
+    create: true
+
+  service: # No need to create a LoadBalancer service if no necessary
+    create: false

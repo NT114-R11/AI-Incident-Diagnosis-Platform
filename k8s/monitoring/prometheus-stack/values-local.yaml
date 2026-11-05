@@ -1,0 +1,68 @@
+# Prometheus
+prometheus:
+  enabled: true
+  prometheusSpec:
+    replicas: 1
+    retention: 3d
+
+    resources:
+      requests:
+        cpu: 250m
+        memory: 512Mi
+      limits:
+        cpu: "1"
+        memory: 1Gi
+
+    storageSpec:
+      volumeClaimTemplate:
+        spec:
+          storageClassName: standard
+          accessModes:
+            - ReadWriteOnce
+          resources:
+            requests:
+              storage: 5Gi
+
+# Grafana
+grafana:
+  enabled: true
+  defaultDashboardsEnabled: true
+
+  persistence:
+    enabled: true
+    type: pvc
+    storageClassName: standard
+    accessModes:
+      - ReadWriteOnce
+    size: 2Gi
+
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+
+# Alertmanager
+alertmanager:
+  enabled: true
+  alertmanagerSpec:
+    replicas: 1
+    retention: 24h
+
+    resources:
+      requests:
+        cpu: 50m
+        memory: 64Mi
+      limits:
+        cpu: 200m
+        memory: 256Mi
+
+# Node Exporter
+prometheus-node-exporter:
+  enabled: true
+
+# kube-state-metrics
+kube-state-metrics:
+  enabled: true

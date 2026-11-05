@@ -15,5 +15,6 @@ spec:
         app: worker
     spec:
       containers:
-      - image: dockersamples/examplevotingapp_worker
+      - image: ghcr.io/nt114-r11/ai-incident-diagnosis-platform-worker:latest
         name: worker
+        imagePullPolicy: Always

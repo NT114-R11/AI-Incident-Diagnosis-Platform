@@ -15,8 +15,9 @@ spec:
         app: result
     spec:
       containers:
-      - image: dockersamples/examplevotingapp_result
+      - image: ghcr.io/nt114-r11/ai-incident-diagnosis-platform-result:latest
         name: result
+        imagePullPolicy: Always
         ports:
         - containerPort: 80
           name: result
