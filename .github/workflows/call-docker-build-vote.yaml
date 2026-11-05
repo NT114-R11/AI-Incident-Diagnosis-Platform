@@ -8,14 +8,14 @@ on:
       - 'main'
     # only build when important files change
     paths:
-      - 'vote/**'
+      - 'example-voting-app/vote/**'
       - '.github/workflows/call-docker-build-vote.yaml'
   pull_request:
     branches:
       - 'main'
     # only build when important files change
     paths:
-      - 'vote/**'
+      - 'example-voting-app/vote/**'
       - '.github/workflows/call-docker-build-vote.yaml'
 
 jobs:
@@ -65,7 +65,7 @@ jobs:
       
       ### path to where docker should copy files into image
       ### defaults to root of repository (.)
-      context: vote
+      context: example-voting-app/vote
       
       ### Dockerfile alternate name. Default is Dockerfile (relative to context path)
       # file: Containerfile
