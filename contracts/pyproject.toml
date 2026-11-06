@@ -1,0 +1,26 @@
+[build-system]
+requires = ["setuptools>=75"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "incident-platform-contracts"
+version = "1.0.0"
+description = "Shared API contracts for AI Incident Diagnosis Platform"
+requires-python = ">=3.12"
+dependencies = [
+    "pydantic>=2,<3"
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8"
+]
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["models*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+addopts = "-v"

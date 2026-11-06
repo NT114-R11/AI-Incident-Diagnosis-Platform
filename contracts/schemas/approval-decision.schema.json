@@ -1,0 +1,101 @@
+{
+  "$defs": {
+    "ApproverInfo": {
+      "additionalProperties": false,
+      "properties": {
+        "telegram_user_id": {
+          "maxLength": 64,
+          "minLength": 1,
+          "pattern": "^[0-9]+$",
+          "title": "Telegram User Id",
+          "type": "string"
+        },
+        "username": {
+          "anyOf": [
+            {
+              "maxLength": 64,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Username"
+        }
+      },
+      "required": [
+        "telegram_user_id"
+      ],
+      "title": "ApproverInfo",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "const": "1.0",
+      "default": "1.0",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "decision_id": {
+      "maxLength": 100,
+      "minLength": 1,
+      "title": "Decision Id",
+      "type": "string"
+    },
+    "request_id": {
+      "maxLength": 100,
+      "minLength": 1,
+      "title": "Request Id",
+      "type": "string"
+    },
+    "incident_id": {
+      "maxLength": 100,
+      "minLength": 1,
+      "title": "Incident Id",
+      "type": "string"
+    },
+    "action_id": {
+      "maxLength": 100,
+      "minLength": 1,
+      "title": "Action Id",
+      "type": "string"
+    },
+    "decision": {
+      "enum": [
+        "approved",
+        "rejected"
+      ],
+      "title": "Decision",
+      "type": "string"
+    },
+    "approver": {
+      "$ref": "#/$defs/ApproverInfo"
+    },
+    "decided_at": {
+      "format": "date-time",
+      "title": "Decided At",
+      "type": "string"
+    },
+    "approval_token": {
+      "maxLength": 512,
+      "minLength": 32,
+      "title": "Approval Token",
+      "type": "string"
+    }
+  },
+  "required": [
+    "decision_id",
+    "request_id",
+    "incident_id",
+    "action_id",
+    "decision",
+    "approver",
+    "decided_at",
+    "approval_token"
+  ],
+  "title": "ApprovalDecision",
+  "type": "object"
+}

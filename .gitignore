@@ -1,19 +1,30 @@
+# Environment variables
 .env
 .env.*
 !.env.example
 
-*.log
+# Python
 __pycache__/
+*.py[cod]
 .pytest_cache/
 .venv/
 venv/
+*.egg-info/
+dist/
+build/
 
+# Logs
+*.log
+
+# IDE
 .idea/
 .vscode/
 
+# OS
 .DS_Store
 Thumbs.db
 
+# Terraform
 *.tfstate
 *.tfstate.*
 .terraform/

@@ -1,0 +1,203 @@
+{
+  "$defs": {
+    "DiagnosisInfo": {
+      "additionalProperties": false,
+      "properties": {
+        "probable_cause": {
+          "maxLength": 2000,
+          "minLength": 1,
+          "title": "Probable Cause",
+          "type": "string"
+        },
+        "confidence": {
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "title": "Confidence",
+          "type": "number"
+        },
+        "evidence_refs": {
+          "items": {
+            "type": "string"
+          },
+          "maxItems": 50,
+          "minItems": 1,
+          "title": "Evidence Refs",
+          "type": "array"
+        }
+      },
+      "required": [
+        "probable_cause",
+        "confidence",
+        "evidence_refs"
+      ],
+      "title": "DiagnosisInfo",
+      "type": "object"
+    },
+    "IncidentInfo": {
+      "additionalProperties": false,
+      "properties": {
+        "title": {
+          "maxLength": 200,
+          "minLength": 1,
+          "title": "Title",
+          "type": "string"
+        },
+        "severity": {
+          "enum": [
+            "critical",
+            "high",
+            "medium",
+            "low"
+          ],
+          "title": "Severity",
+          "type": "string"
+        },
+        "namespace": {
+          "maxLength": 63,
+          "minLength": 1,
+          "title": "Namespace",
+          "type": "string"
+        },
+        "resource_type": {
+          "enum": [
+            "deployment",
+            "statefulset",
+            "daemonset",
+            "pod"
+          ],
+          "title": "Resource Type",
+          "type": "string"
+        },
+        "resource_name": {
+          "maxLength": 253,
+          "minLength": 1,
+          "title": "Resource Name",
+          "type": "string"
+        },
+        "summary": {
+          "maxLength": 2000,
+          "minLength": 1,
+          "title": "Summary",
+          "type": "string"
+        }
+      },
+      "required": [
+        "title",
+        "severity",
+        "namespace",
+        "resource_type",
+        "resource_name",
+        "summary"
+      ],
+      "title": "IncidentInfo",
+      "type": "object"
+    },
+    "ProposedAction": {
+      "additionalProperties": false,
+      "properties": {
+        "action_id": {
+          "maxLength": 100,
+          "minLength": 1,
+          "title": "Action Id",
+          "type": "string"
+        },
+        "action_type": {
+          "const": "restart_deployment",
+          "title": "Action Type",
+          "type": "string"
+        },
+        "parameters": {
+          "$ref": "#/$defs/RestartDeploymentParameters"
+        },
+        "reason": {
+          "maxLength": 1000,
+          "minLength": 1,
+          "title": "Reason",
+          "type": "string"
+        }
+      },
+      "required": [
+        "action_id",
+        "action_type",
+        "parameters",
+        "reason"
+      ],
+      "title": "ProposedAction",
+      "type": "object"
+    },
+    "RestartDeploymentParameters": {
+      "additionalProperties": false,
+      "properties": {
+        "namespace": {
+          "maxLength": 63,
+          "minLength": 1,
+          "title": "Namespace",
+          "type": "string"
+        },
+        "deployment": {
+          "maxLength": 253,
+          "minLength": 1,
+          "title": "Deployment",
+          "type": "string"
+        }
+      },
+      "required": [
+        "namespace",
+        "deployment"
+      ],
+      "title": "RestartDeploymentParameters",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "const": "1.0",
+      "default": "1.0",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "request_id": {
+      "maxLength": 100,
+      "minLength": 1,
+      "title": "Request Id",
+      "type": "string"
+    },
+    "incident_id": {
+      "maxLength": 100,
+      "minLength": 1,
+      "title": "Incident Id",
+      "type": "string"
+    },
+    "created_at": {
+      "format": "date-time",
+      "title": "Created At",
+      "type": "string"
+    },
+    "expires_at": {
+      "format": "date-time",
+      "title": "Expires At",
+      "type": "string"
+    },
+    "incident": {
+      "$ref": "#/$defs/IncidentInfo"
+    },
+    "diagnosis": {
+      "$ref": "#/$defs/DiagnosisInfo"
+    },
+    "proposed_action": {
+      "$ref": "#/$defs/ProposedAction"
+    }
+  },
+  "required": [
+    "request_id",
+    "incident_id",
+    "created_at",
+    "expires_at",
+    "incident",
+    "diagnosis",
+    "proposed_action"
+  ],
+  "title": "RemediationRequest",
+  "type": "object"
+}

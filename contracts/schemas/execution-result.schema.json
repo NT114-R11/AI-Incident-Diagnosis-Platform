@@ -1,0 +1,140 @@
+{
+  "$defs": {
+    "AuditInfo": {
+      "additionalProperties": false,
+      "properties": {
+        "executor_id": {
+          "maxLength": 100,
+          "minLength": 1,
+          "title": "Executor Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "executor_id"
+      ],
+      "title": "AuditInfo",
+      "type": "object"
+    },
+    "ExecutionOutput": {
+      "additionalProperties": false,
+      "properties": {
+        "message": {
+          "maxLength": 2000,
+          "minLength": 1,
+          "title": "Message",
+          "type": "string"
+        }
+      },
+      "required": [
+        "message"
+      ],
+      "title": "ExecutionOutput",
+      "type": "object"
+    },
+    "ExecutionTarget": {
+      "additionalProperties": false,
+      "properties": {
+        "namespace": {
+          "maxLength": 63,
+          "minLength": 1,
+          "title": "Namespace",
+          "type": "string"
+        },
+        "resource_type": {
+          "enum": [
+            "deployment",
+            "statefulset",
+            "daemonset",
+            "pod"
+          ],
+          "title": "Resource Type",
+          "type": "string"
+        },
+        "resource_name": {
+          "maxLength": 253,
+          "minLength": 1,
+          "title": "Resource Name",
+          "type": "string"
+        }
+      },
+      "required": [
+        "namespace",
+        "resource_type",
+        "resource_name"
+      ],
+      "title": "ExecutionTarget",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "const": "1.0",
+      "default": "1.0",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "execution_id": {
+      "maxLength": 100,
+      "minLength": 1,
+      "title": "Execution Id",
+      "type": "string"
+    },
+    "incident_id": {
+      "maxLength": 100,
+      "minLength": 1,
+      "title": "Incident Id",
+      "type": "string"
+    },
+    "action_id": {
+      "maxLength": 100,
+      "minLength": 1,
+      "title": "Action Id",
+      "type": "string"
+    },
+    "status": {
+      "enum": [
+        "succeeded",
+        "failed",
+        "rejected",
+        "timeout",
+        "already_executed"
+      ],
+      "title": "Status",
+      "type": "string"
+    },
+    "target": {
+      "$ref": "#/$defs/ExecutionTarget"
+    },
+    "started_at": {
+      "format": "date-time",
+      "title": "Started At",
+      "type": "string"
+    },
+    "completed_at": {
+      "format": "date-time",
+      "title": "Completed At",
+      "type": "string"
+    },
+    "result": {
+      "$ref": "#/$defs/ExecutionOutput"
+    },
+    "audit": {
+      "$ref": "#/$defs/AuditInfo"
+    }
+  },
+  "required": [
+    "execution_id",
+    "incident_id",
+    "action_id",
+    "status",
+    "target",
+    "started_at",
+    "completed_at",
+    "result",
+    "audit"
+  ],
+  "title": "ExecutionResult",
+  "type": "object"
+}

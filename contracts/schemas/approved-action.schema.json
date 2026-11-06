@@ -1,0 +1,208 @@
+{
+  "$defs": {
+    "ApprovalMetadata": {
+      "additionalProperties": false,
+      "properties": {
+        "decision_id": {
+          "title": "Decision Id",
+          "type": "string"
+        },
+        "approver": {
+          "$ref": "#/$defs/ApproverInfo"
+        },
+        "approved_at": {
+          "format": "date-time",
+          "title": "Approved At",
+          "type": "string"
+        },
+        "approval_token": {
+          "maxLength": 512,
+          "minLength": 32,
+          "title": "Approval Token",
+          "type": "string"
+        }
+      },
+      "required": [
+        "decision_id",
+        "approver",
+        "approved_at",
+        "approval_token"
+      ],
+      "title": "ApprovalMetadata",
+      "type": "object"
+    },
+    "ApproverInfo": {
+      "additionalProperties": false,
+      "properties": {
+        "telegram_user_id": {
+          "maxLength": 64,
+          "minLength": 1,
+          "pattern": "^[0-9]+$",
+          "title": "Telegram User Id",
+          "type": "string"
+        },
+        "username": {
+          "anyOf": [
+            {
+              "maxLength": 64,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Username"
+        }
+      },
+      "required": [
+        "telegram_user_id"
+      ],
+      "title": "ApproverInfo",
+      "type": "object"
+    },
+    "ExecutionPolicy": {
+      "additionalProperties": false,
+      "properties": {
+        "timeout_seconds": {
+          "maximum": 300,
+          "minimum": 1,
+          "title": "Timeout Seconds",
+          "type": "integer"
+        },
+        "max_attempts": {
+          "const": 1,
+          "default": 1,
+          "title": "Max Attempts",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "timeout_seconds"
+      ],
+      "title": "ExecutionPolicy",
+      "type": "object"
+    },
+    "ProposedAction": {
+      "additionalProperties": false,
+      "properties": {
+        "action_id": {
+          "maxLength": 100,
+          "minLength": 1,
+          "title": "Action Id",
+          "type": "string"
+        },
+        "action_type": {
+          "const": "restart_deployment",
+          "title": "Action Type",
+          "type": "string"
+        },
+        "parameters": {
+          "$ref": "#/$defs/RestartDeploymentParameters"
+        },
+        "reason": {
+          "maxLength": 1000,
+          "minLength": 1,
+          "title": "Reason",
+          "type": "string"
+        }
+      },
+      "required": [
+        "action_id",
+        "action_type",
+        "parameters",
+        "reason"
+      ],
+      "title": "ProposedAction",
+      "type": "object"
+    },
+    "RestartDeploymentParameters": {
+      "additionalProperties": false,
+      "properties": {
+        "namespace": {
+          "maxLength": 63,
+          "minLength": 1,
+          "title": "Namespace",
+          "type": "string"
+        },
+        "deployment": {
+          "maxLength": 253,
+          "minLength": 1,
+          "title": "Deployment",
+          "type": "string"
+        }
+      },
+      "required": [
+        "namespace",
+        "deployment"
+      ],
+      "title": "RestartDeploymentParameters",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "const": "1.0",
+      "default": "1.0",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "execution_id": {
+      "maxLength": 100,
+      "minLength": 1,
+      "title": "Execution Id",
+      "type": "string"
+    },
+    "incident_id": {
+      "maxLength": 100,
+      "minLength": 1,
+      "title": "Incident Id",
+      "type": "string"
+    },
+    "request_id": {
+      "maxLength": 100,
+      "minLength": 1,
+      "title": "Request Id",
+      "type": "string"
+    },
+    "action_id": {
+      "maxLength": 100,
+      "minLength": 1,
+      "title": "Action Id",
+      "type": "string"
+    },
+    "approval": {
+      "$ref": "#/$defs/ApprovalMetadata"
+    },
+    "action": {
+      "$ref": "#/$defs/ProposedAction"
+    },
+    "execution_policy": {
+      "$ref": "#/$defs/ExecutionPolicy"
+    },
+    "issued_at": {
+      "format": "date-time",
+      "title": "Issued At",
+      "type": "string"
+    },
+    "expires_at": {
+      "format": "date-time",
+      "title": "Expires At",
+      "type": "string"
+    }
+  },
+  "required": [
+    "execution_id",
+    "incident_id",
+    "request_id",
+    "action_id",
+    "approval",
+    "action",
+    "execution_policy",
+    "issued_at",
+    "expires_at"
+  ],
+  "title": "ApprovedAction",
+  "type": "object"
+}
