@@ -28,3 +28,25 @@ Thumbs.db
 *.tfstate
 *.tfstate.*
 .terraform/
+
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+
+
+# coverage
+
+.coverage
+htmlcov/
+
+
+
+
