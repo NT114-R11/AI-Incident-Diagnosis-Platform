@@ -1,0 +1,22 @@
+
+apiVersion: v1
+kind: Pod
+metadata:
+  name: diagnosis-crash-test
+  namespace: voting-app
+  labels:
+    app: diagnosis-crash-test
+    purpose: diagnosis-testing
+spec:
+  restartPolicy: Always
+  containers:
+    - name: nginx
+      image: nginx:alpine
+      livenessProbe:
+        httpGet:
+          path: /non-existent-endpoint
+          port: 80
+        initialDelaySeconds: 3
+        periodSeconds: 3
+        timeoutSeconds: 1
+        failureThreshold: 1

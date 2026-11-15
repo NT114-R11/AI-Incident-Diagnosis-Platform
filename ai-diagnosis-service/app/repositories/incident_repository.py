@@ -43,6 +43,11 @@ class IncidentRepository:
         self.db.flush()
         return incident
 
+    def acknowledge(self, incident: Incident) -> Incident:
+        incident.status = "acknowledged"
+        self.db.flush()
+        return incident
+
     def list_incidents(self,
                         status: str | None = None,
                         severity: str | None = None,

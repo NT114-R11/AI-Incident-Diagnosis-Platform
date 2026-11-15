@@ -49,12 +49,13 @@ class LokiClient:
             async with httpx.AsyncClient(
                 timeout=self.timeout
             ) as client:
-                response = await client.get(url, params=params)
+                response = await client.get(url, params=params, headers={"X-Scope-OrgID": settings.loki_tenant_id})
                 response.raise_for_status()
 
         except httpx.HTTPStatusError as exc:
             raise LokiAPIError(
-                f"Loki returned HTTP {exc.response.status_code}"
+                f"Loki returned HTTP {exc.response.status_code}: "
+                f"{exc.response.text}"
             ) from exc
 
         except httpx.RequestError as exc:

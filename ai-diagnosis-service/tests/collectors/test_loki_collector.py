@@ -1,6 +1,6 @@
-from unittest.mock import AsyncMock
 
 import pytest
+from unittest.mock import AsyncMock
 
 from app.collectors.loki.collector import LokiCollector
 from app.collectors.loki.queries import (
@@ -21,48 +21,36 @@ def collector(mock_client):
 
 
 @pytest.mark.asyncio
-async def test_collect_returns_all_evidence(collector, mock_client):
-    mock_client.query.side_effect = [
-        {"resultType": "streams", "result": [{"stream": {"container": "vote"}, "values": []}]},
-        {"resultType": "streams", "result": []},
-        {"resultType": "streams", "result": []},
-    ]
-
-    result = await collector.collect()
-
-    assert result["source"] == "loki"
-    assert result["namespace"] == "voting-app"
-    assert "collected_at" in result
-
-    assert "all" in result["logs"]
-    assert "errors" in result["logs"]
-    assert "warnings" in result["logs"]
-
-
-@pytest.mark.asyncio
 async def test_collect_calls_all_queries(collector, mock_client):
-    mock_client.query.return_value = {
+    mock_client.query_range.return_value = {
         "resultType": "streams",
         "result": [],
     }
 
-    await collector.collect()
+    result = await collector.collect()
 
-    assert mock_client.query.call_count == 3
+    assert mock_client.query_range.call_count == 3
 
-    called_queries = [
-        call.args[0]
-        for call in mock_client.query.call_args_list
-    ]
+    calls = mock_client.query_range.call_args_list
+    queries = [call.args[0] for call in calls]
 
-    assert ALL_LOGS_QUERY in called_queries
-    assert ERROR_LOGS_QUERY in called_queries
-    assert WARNING_LOGS_QUERY in called_queries
+    assert ALL_LOGS_QUERY in queries
+    assert ERROR_LOGS_QUERY in queries
+    assert WARNING_LOGS_QUERY in queries
+
+    for call in calls:
+        assert call.args[1] < call.args[2]
+
+    assert result["source"] == "loki"
+    assert result["namespace"] == "voting-app"
+    assert result["logs"]["all"]["result"] == []
+    assert result["logs"]["errors"]["result"] == []
+    assert result["logs"]["warnings"]["result"] == []
 
 
 @pytest.mark.asyncio
 async def test_collect_raises_when_query_fails(collector, mock_client):
-    mock_client.query.side_effect = Exception("Loki unavailable")
+    mock_client.query_range.side_effect = Exception("Loki unavailable")
 
     with pytest.raises(Exception, match="Loki unavailable"):
         await collector.collect()

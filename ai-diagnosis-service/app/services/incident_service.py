@@ -1,7 +1,7 @@
 
 import hashlib
 from datetime import datetime, timezone
-
+import uuid
 from sqlalchemy import text
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
@@ -31,40 +31,27 @@ class IncidentService:
             {"lock_key": lock_key},
         )
 
-    def _is_active_fingerprint_conflict(
-        self,
-        error: IntegrityError,
-    ) -> bool:
+    def _is_active_fingerprint_conflict(self, error: IntegrityError) -> bool:
         original_error = error.orig
         diagnostics = getattr(original_error, "diag", None)
         constraint_name = getattr(
             diagnostics,
             "constraint_name",
-            None,
-        )
+            None)
 
         return constraint_name == self.ACTIVE_FINGERPRINT_CONSTRAINT
 
-    def _recover_duplicate_firing(
-        self,
-        alert: Alert,
-    ) -> tuple[Incident, str]:
+    def _recover_duplicate_firing(self, alert: Alert) -> tuple[Incident, str]:
         with self.db.begin():
             self._acquire_fingerprint_lock(alert.fingerprint)
 
-            incident = self.repository.get_active_by_fingerprint(
-                alert.fingerprint
-            )
+            incident = self.repository.get_active_by_fingerprint(alert.fingerprint)
 
             if incident is None:
-                raise RuntimeError(
-                    "Active incident not found after unique constraint conflict"
-                )
+                raise RuntimeError("Active incident not found after unique constraint conflict")
 
             now = datetime.now(timezone.utc)
-
             self.repository.update_last_seen(incident, now)
-
             return incident, "updated"
 
     def process_alert(self, alert: Alert) -> tuple[Incident | None, str]:
@@ -125,6 +112,57 @@ class IncidentService:
                 raise
 
             return self._recover_duplicate_firing(alert)
+
+        except Exception:
+            self.db.rollback()
+            raise
+
+
+    def acknowledge_incident(self, incident_id: uuid.UUID) -> Incident | None:
+        try:
+            if self.db.in_transaction():
+                self.db.commit()
+
+            with self.db.begin():
+                incident = self.repository.get_by_id(incident_id)
+
+                if incident is None:
+                    return None
+
+                if incident.status == "resolved":
+                    raise ValueError(
+                        "Cannot acknowledge a resolved incident"
+                    )
+
+                if incident.status == "acknowledged":
+                    return incident
+
+                return self.repository.acknowledge(incident)
+
+        except Exception:
+            self.db.rollback()
+            raise
+
+    def resolve_incident(self, incident_id: uuid.UUID) -> Incident | None:
+        try:
+            if self.db.in_transaction():
+                self.db.commit()
+
+            with self.db.begin():
+                incident = self.repository.get_by_id(incident_id)
+
+                if incident is None:
+                    return None
+
+                # Idempotent: resolving an already resolved incident
+                # does not change its resolved_at timestamp.
+                if incident.status == "resolved":
+                    return incident
+
+                return self.repository.resolve(
+                    incident,
+                    datetime.now(timezone.utc),
+                )
 
         except Exception:
             self.db.rollback()

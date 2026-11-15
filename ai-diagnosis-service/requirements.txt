@@ -5,6 +5,9 @@ pydantic-settings
 sqlalchemy>=2,<3
 psycopg[binary]>=3,<4
 alembic
+kubernetes>=32,<38
 
 pytest
+pytest-asyncio
 httpx
+google-genai

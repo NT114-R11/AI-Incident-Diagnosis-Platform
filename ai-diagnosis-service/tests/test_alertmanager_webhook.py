@@ -1,6 +1,6 @@
-
 import uuid
-
+import pytest
+from types import SimpleNamespace
 from fastapi.testclient import TestClient
 from sqlalchemy import select
 
@@ -8,6 +8,31 @@ from app.main import app
 from app.models.incident import Incident
 from app.database.connection import SessionLocal
 
+
+
+@pytest.fixture(autouse=True)
+def mock_diagnosis_service(monkeypatch):
+    class FakeDiagnosisService:
+        def __init__(self, ai_diagnosis_service=None):
+            pass
+
+        async def diagnose_with_context(self, incident):
+            return SimpleNamespace(
+                model_dump=lambda mode="python": {
+                    "status": "mocked",
+                    "incident_id": str(incident.id),
+                }
+            )
+
+    monkeypatch.setattr(
+        "app.services.alert_processor.DiagnosisService",
+        FakeDiagnosisService,
+    )
+
+    monkeypatch.setattr(
+        "app.services.alert_processor.AIDiagnosisService",
+        lambda: object(),
+    )
 
 def make_alert(status="firing", fingerprint="abc123"):
     return {

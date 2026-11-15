@@ -42,7 +42,54 @@ def alert_data():
         "fingerprint": f"test-{uuid.uuid4()}",
     }
 
+def test_acknowledge_open_incident(service, db_session, alert_data):
+    incident, action = service.process_alert(Alert(**alert_data))
 
+    acknowledged = service.acknowledge_incident(incident.id)
+
+    assert action == "created"
+    assert acknowledged.id == incident.id
+    assert acknowledged.status == "acknowledged"
+
+    active = service.repository.get_active_by_fingerprint(
+        incident.fingerprint
+    )
+    assert active.id == incident.id
+def test_acknowledge_already_acknowledged_incident(service, alert_data):
+    incident, _ = service.process_alert(Alert(**alert_data))
+
+    first = service.acknowledge_incident(incident.id)
+    second = service.acknowledge_incident(incident.id)
+
+    assert first.status == "acknowledged"
+    assert second.status == "acknowledged"
+    assert first.id == second.id
+
+
+def test_cannot_acknowledge_resolved_incident(
+    service, alert_data
+):
+    incident, _ = service.process_alert(Alert(**alert_data))
+
+    resolved_alert = Alert(
+        **{
+            **alert_data,
+            "status": "resolved",
+            "endsAt": datetime.now(timezone.utc).isoformat(),
+        }
+    )
+    service.process_alert(resolved_alert)
+
+    with pytest.raises(ValueError, match="Cannot acknowledge"):
+        service.acknowledge_incident(incident.id)
+
+
+def test_acknowledge_nonexistent_incident(service):
+    result = service.acknowledge_incident(uuid.uuid4())
+
+    assert result is None
+
+    
 def count_incidents(db_session, fingerprint):
     statement = (
         select(func.count())
