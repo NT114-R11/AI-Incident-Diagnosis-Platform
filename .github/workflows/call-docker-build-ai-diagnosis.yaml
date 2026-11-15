@@ -1,0 +1,48 @@
+
+name: Build AI Diagnosis Service
+
+on:
+  push:
+    branches:
+      - 'main'
+    paths:
+      - 'ai-diagnosis-service/**'
+      - '.github/workflows/call-docker-build-ai-diagnosis.yaml'
+
+  pull_request:
+    branches:
+      - 'main'
+    paths:
+      - 'ai-diagnosis-service/**'
+      - '.github/workflows/call-docker-build-ai-diagnosis.yaml'
+
+jobs:
+  call-docker-build:
+    name: AI Diagnosis Service Call Docker Build
+
+    uses: dockersamples/.github/.github/workflows/reusable-docker-build.yaml@main
+
+    permissions:
+      contents: read
+      packages: write
+      pull-requests: write
+
+    secrets:
+      dockerhub-username: ${{ secrets.DOCKERHUB_USERNAME }}
+      dockerhub-token: ${{ secrets.DOCKERHUB_TOKEN }}
+
+    with:
+      dockerhub-enable: true
+      ghcr-enable: true
+
+      image-names: |
+        ghcr.io/nt114-r11/ai-incident-diagnosis-platform-ai-diagnosis-service
+        dannieltuanna/ai-incident-diagnosis-service
+
+      tag-rules: |
+        type=raw,value=latest,enable=${{ endsWith(github.ref, github.event.repository.default_branch) }}
+        type=ref,event=pr
+
+      context: ai-diagnosis-service
+
+      platforms: linux/amd64,linux/arm64
