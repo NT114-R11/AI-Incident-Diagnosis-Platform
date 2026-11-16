@@ -27,6 +27,24 @@ loki:
     retention_enabled: true
     delete_request_store: filesystem
 
+  # Loki Ruler: evaluate LogQL alert rules and forward alerts to Alertmanager.
+  rulerConfig:
+    enable_api: true
+    enable_alertmanager_v2: true
+    alertmanager_url: http://kube-prometheus-stack-alertmanager.monitoring.svc.cluster.local:9093
+    evaluation_interval: 30s
+    poll_interval: 30s
+    rule_path: /tmp/loki/rules
+    ring:
+      kvstore:
+        store: inmemory
+    storage:
+      type: local
+      local:
+        directory: /etc/loki/rules
+    wal:
+      dir: /var/loki/ruler-wal
+
 singleBinary:
   replicas: 1
 
@@ -44,6 +62,20 @@ singleBinary:
     limits:
       cpu: 1
       memory: 1Gi
+
+  # Mount the generated ConfigMap containing Loki alert rules.
+  extraVolumes:
+    - name: loki-alert-rules
+      configMap:
+        name: loki-alert-rules
+        items:
+          - key: alerts.yaml
+            path: fake/alerts.yaml
+
+  extraVolumeMounts:
+    - name: loki-alert-rules
+      mountPath: /etc/loki/rules
+      readOnly: true
 
 backend:
   replicas: 0
@@ -65,3 +97,9 @@ resultsCache:
 
 test:
   enabled: false
+
+# Ruler runs inside the Monolithic Loki process.
+# Do not create a separate Ruler workload.
+ruler:
+  enabled: true
+  replicas: 0

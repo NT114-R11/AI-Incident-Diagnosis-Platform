@@ -1,0 +1,104 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ai-diagnosis-api
+  namespace: voting-app
+  labels:
+    app: ai-diagnosis-api
+    app.kubernetes.io/part-of: ai-incident-diagnosis-platform
+spec:
+  replicas: 1
+
+  selector:
+    matchLabels:
+      app: ai-diagnosis-api
+
+  template:
+    metadata:
+      labels:
+        app: ai-diagnosis-api
+
+    spec:
+      containers:
+        - name: ai-diagnosis-api
+
+          image: ghcr.io/nt114-r11/ai-incident-diagnosis-platform-ai-diagnosis-service:latest
+          imagePullPolicy: Always
+
+          ports:
+            - name: http
+              containerPort: 8000
+              protocol: TCP
+
+          envFrom:
+            - configMapRef:
+                name: ai-diagnosis-config
+
+          env:
+            - name: DATABASE_NAME
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-secret
+                  key: POSTGRES_DB
+
+            - name: DATABASE_USER
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-secret
+                  key: POSTGRES_USER
+
+            - name: DATABASE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-secret
+                  key: POSTGRES_PASSWORD
+
+            - name: GEMINI_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: ai-diagnosis-secret
+                  key: GEMINI_API_KEY
+
+            - name: TELEGRAM_BOT_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: ai-diagnosis-secret
+                  key: TELEGRAM_BOT_TOKEN
+
+            - name: TELEGRAM_CHAT_ID
+              valueFrom:
+                secretKeyRef:
+                  name: ai-diagnosis-secret
+                  key: TELEGRAM_CHAT_ID
+
+            - name: TELEGRAM_ADMIN_IDS
+              valueFrom:
+                secretKeyRef:
+                  name: ai-diagnosis-secret
+                  key: TELEGRAM_ADMIN_IDS
+
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            timeoutSeconds: 3
+            failureThreshold: 3
+
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 30
+            periodSeconds: 20
+            timeoutSeconds: 5
+            failureThreshold: 3
+
+          resources:
+            requests:
+              cpu: 100m
+              memory: 256Mi
+            limits:
+              cpu: 500m
+              memory: 1Gi

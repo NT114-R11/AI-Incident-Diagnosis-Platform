@@ -1,0 +1,61 @@
+
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: ai-diagnosis-migration
+  namespace: voting-app
+  labels:
+    app: ai-diagnosis-migration
+    app.kubernetes.io/part-of: ai-incident-diagnosis-platform
+spec:
+  backoffLimit: 3
+  activeDeadlineSeconds: 300
+
+  template:
+    metadata:
+      labels:
+        app: ai-diagnosis-migration
+
+    spec:
+      restartPolicy: Never
+
+      containers:
+        - name: migration
+          image: ghcr.io/nt114-r11/ai-incident-diagnosis-platform-ai-diagnosis-service:latest
+          imagePullPolicy: Always
+
+          command:
+            - alembic
+            - upgrade
+            - head
+
+          envFrom:
+            - configMapRef:
+                name: ai-diagnosis-config
+
+          env:
+            - name: DATABASE_NAME
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-secret
+                  key: POSTGRES_DB
+
+            - name: DATABASE_USER
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-secret
+                  key: POSTGRES_USER
+
+            - name: DATABASE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-secret
+                  key: POSTGRES_PASSWORD
+
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi

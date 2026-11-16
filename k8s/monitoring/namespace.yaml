@@ -4,3 +4,4 @@ metadata:
   name: monitoring
   labels:
     app.kubernetes.io/part-of: ai-incident-diagnosis-platform
+    prometheus: enabled

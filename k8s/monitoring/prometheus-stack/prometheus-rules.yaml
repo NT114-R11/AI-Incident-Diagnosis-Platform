@@ -1,0 +1,61 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: voting-app-alerts
+  namespace: monitoring
+  labels:
+    app.kubernetes.io/part-of: ai-incident-diagnosis-platform
+spec:
+  groups:
+    - name: voting-app.pod
+      interval: 30s
+      rules:
+        # Detect containers in CrashLoopBackOff
+        - alert: POD_CRASH_LOOP
+          expr: |
+            max by (namespace, pod, container) (
+              kube_pod_container_status_waiting_reason{
+                namespace="voting-app",
+                reason="CrashLoopBackOff"
+              }
+            ) == 1
+          for: 1m
+          labels:
+            severity: critical
+          annotations:
+            summary: "Pod container is in CrashLoopBackOff"
+            description: >-
+              Container {{ $labels.container }} in Pod {{ $labels.pod }}
+              (namespace {{ $labels.namespace }}) is in CrashLoopBackOff.
+
+        # Detect CPU usage above 80% of container CPU limit
+        - alert: HIGH_CPU
+          expr: |
+            (
+              sum by (namespace, pod, container) (
+                rate(
+                  container_cpu_usage_seconds_total{
+                    namespace="voting-app",
+                    container!="",
+                    container!="POD"
+                  }[5m]
+                )
+              )
+              /
+              sum by (namespace, pod, container) (
+                kube_pod_container_resource_limits{
+                  namespace="voting-app",
+                  resource="cpu",
+                  unit="core"
+                }
+              )
+            ) > 0.8
+          for: 1m
+          labels:
+            severity: warning
+          annotations:
+            summary: "Container CPU usage is above 80% of its limit"
+            description: >-
+              Container {{ $labels.container }} in Pod {{ $labels.pod }}
+              (namespace {{ $labels.namespace }}) has CPU usage above 80%
+              of its configured CPU limit for at least 1 minute.

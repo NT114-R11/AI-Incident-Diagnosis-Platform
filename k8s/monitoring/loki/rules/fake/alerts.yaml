@@ -1,0 +1,43 @@
+groups:
+  - name: voting-app.application
+    interval: 30s
+    rules:
+      # Detect application exceptions
+      - alert: APPLICATION_EXCEPTION
+        expr: |
+          sum by (namespace, pod, container) (
+            count_over_time(
+              {namespace="voting-app"}
+              |~ "(?i)(exception|traceback|panic|stack trace)"
+              [5m]
+            )
+          ) > 0
+        for: 30s
+        labels:
+          severity: critical
+        annotations:
+          summary: "Application exception detected"
+          description: >-
+            Application logs from Pod {{ $labels.pod }}
+            in namespace {{ $labels.namespace }}
+            contain exception-related messages.
+
+      # Detect application errors
+      - alert: APPLICATION_ERROR
+        expr: |
+          sum by (namespace, pod, container) (
+            count_over_time(
+              {namespace="voting-app"}
+              |~ "(?i)(error:|failed|failure|fatal)"
+              [5m]
+            )
+          ) > 0
+        for: 30s
+        labels:
+          severity: warning
+        annotations:
+          summary: "Application error detected"
+          description: >-
+            Application logs from Pod {{ $labels.pod }}
+            in namespace {{ $labels.namespace }}
+            contain error-related messages.
