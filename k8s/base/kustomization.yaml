@@ -35,5 +35,5 @@ resources:
   - ai-diagnosis/ai-api-deployment.yaml
   - ai-diagnosis/ai-api-service.yaml
   - ai-diagnosis/telegram-polling-deployment.yaml
-  - ai-diagnosis/secret.yaml
+  # - ai-diagnosis/secret.yaml
   - ai-diagnosis/migration-job.yaml
