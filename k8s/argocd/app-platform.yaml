@@ -1,0 +1,27 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: ai-incident-platform
+  namespace: argocd
+  # Tự xóa Application khi resource này bị xóa
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+
+  source:
+    repoURL: https://github.com/NT114-R11/AI-Incident-Diagnosis-Platform
+    targetRevision: main
+    path: k8s/overlays/production
+
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: voting-app
+
+  syncPolicy:
+    automated:
+      prune: true       # Tự xóa resource không còn trong Git
+      selfHeal: true    # Tự sửa nếu ai đó kubectl apply bằng tay
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true

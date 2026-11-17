@@ -3,3 +3,12 @@ kind: Kustomization
 
 resources:
   - ../../base
+
+patches:
+  # k3s dùng StorageClass "local-path" thay vì "standard" của Kind
+  - target:
+      kind: PersistentVolumeClaim
+    patch: |-
+      - op: replace
+        path: /spec/storageClassName
+        value: local-path
