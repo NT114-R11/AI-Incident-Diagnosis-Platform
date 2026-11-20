@@ -1,0 +1,94 @@
+# Production values for k3s deployment
+# StorageClass: local-path (k3s default)
+
+prometheus:
+  enabled: true
+  prometheusSpec:
+    replicas: 1
+    retention: 3d
+
+    ruleSelectorNilUsesHelmValues: false
+    ruleSelector: {}
+    ruleNamespaceSelector:
+      matchLabels:
+        prometheus: enabled
+
+    resources:
+      requests:
+        cpu: 250m
+        memory: 512Mi
+      limits:
+        cpu: "1"
+        memory: 1Gi
+
+    storageSpec:
+      volumeClaimTemplate:
+        spec:
+          storageClassName: local-path
+          accessModes:
+            - ReadWriteOnce
+          resources:
+            requests:
+              storage: 5Gi
+
+grafana:
+  enabled: true
+  defaultDashboardsEnabled: true
+
+  persistence:
+    enabled: true
+    type: pvc
+    storageClassName: local-path
+    accessModes:
+      - ReadWriteOnce
+    size: 2Gi
+
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+
+alertmanager:
+  enabled: true
+
+  config:
+    global:
+      resolve_timeout: 5m
+
+    route:
+      receiver: ai-diagnosis
+      group_by:
+        - alertname
+        - namespace
+        - pod
+      group_wait: 15s
+      group_interval: 1m
+      repeat_interval: 4h
+
+    receivers:
+      - name: ai-diagnosis
+        webhook_configs:
+          - url: "http://ai-api.voting-app.svc.cluster.local:8000/webhooks/alertmanager"
+            send_resolved: true
+      - name: "null"
+
+  alertmanagerSpec:
+    replicas: 1
+    retention: 24h
+
+    resources:
+      requests:
+        cpu: 50m
+        memory: 64Mi
+      limits:
+        cpu: 200m
+        memory: 256Mi
+
+prometheus-node-exporter:
+  enabled: true
+
+kube-state-metrics:
+  enabled: true
