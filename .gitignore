@@ -35,20 +35,14 @@ __pycache__/
 *.py[cod]
 *$py.class
 
-# Virtual environments
-.venv/
-venv/
-env/
-
-
 
 # coverage
-
 .coverage
 htmlcov/
 
-
-
-
 # secrets 
 **/secret.yaml
+
+# Local working documents
+docs/DACN_AI_DIAGNOSIS_HANDOFF_2026-11-17.md
+docs/ke-hoach-hoan-thien-ci-cd-gitops-local.md
