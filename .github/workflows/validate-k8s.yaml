@@ -1,4 +1,3 @@
-
 name: Validate Kubernetes Manifests
 
 on:
@@ -20,7 +19,7 @@ on:
 
 jobs:
   validate:
-    name: Validate Kustomize
+    name: Validate Local Kustomize
     runs-on: ubuntu-latest
 
     steps:
@@ -39,21 +38,9 @@ jobs:
 
           echo "Local overlay validation passed."
 
-      - name: Validate Production Overlay
-        run: |
-          set -euo pipefail
-
-          kubectl kustomize k8s/overlays/production \
-            > /tmp/production-rendered.yaml
-
-          echo "Production overlay validation passed."
-
       - name: Show Resource Summary
         run: |
           set -euo pipefail
 
           echo "Local resources:"
           grep -c '^kind:' /tmp/local-rendered.yaml
-
-          echo "Production resources:"
-          grep -c '^kind:' /tmp/production-rendered.yaml

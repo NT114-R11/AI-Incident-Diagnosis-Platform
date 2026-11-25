@@ -1,48 +1,70 @@
-
 name: Build AI Diagnosis Service
 
 on:
   push:
     branches:
-      - 'main'
+      - main
     paths:
       - 'ai-diagnosis-service/**'
       - '.github/workflows/call-docker-build-ai-diagnosis.yaml'
+      - '.github/workflows/reusable-docker-build.yaml'
 
   pull_request:
     branches:
-      - 'main'
+      - main
     paths:
       - 'ai-diagnosis-service/**'
       - '.github/workflows/call-docker-build-ai-diagnosis.yaml'
+      - '.github/workflows/reusable-docker-build.yaml'
 
 jobs:
-  call-docker-build:
-    name: AI Diagnosis Service Call Docker Build
+  test:
+    name: Run AI Diagnosis Tests
+    runs-on: ubuntu-latest
 
-    uses: dockersamples/.github/.github/workflows/reusable-docker-build.yaml@main
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.14'
+          cache: pip
+          cache-dependency-path: ai-diagnosis-service/requirements.txt
+
+      - name: Install dependencies
+        working-directory: ai-diagnosis-service
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Run selected tests
+        working-directory: ai-diagnosis-service
+        run: |
+          pytest -v \
+            tests/ai/prompts/test_diagnosis_prompt.py \
+            tests/ai/providers/test_gemini_provider.py \
+            tests/ai/test_diagnosis_service.py \
+            tests/ai/test_model_manager.py \
+            tests/collectors/test_kubernetes_collector.py
+
+  build:
+    name: Build AI Diagnosis Docker Image
+    needs: test
     permissions:
       contents: read
       packages: write
-      pull-requests: write
 
-    secrets:
-      dockerhub-username: ${{ secrets.DOCKERHUB_USERNAME }}
-      dockerhub-token: ${{ secrets.DOCKERHUB_TOKEN }}
+    uses: ./.github/workflows/reusable-docker-build.yaml
 
     with:
-      dockerhub-enable: true
-      ghcr-enable: true
-
+      context: ai-diagnosis-service
       image-names: |
         ghcr.io/nt114-r11/ai-incident-diagnosis-platform-ai-diagnosis-service
         dannieltuanna/ai-incident-diagnosis-service
-
-      tag-rules: |
-        type=raw,value=latest,enable=${{ endsWith(github.ref, github.event.repository.default_branch) }}
-        type=ref,event=pr
-
-      context: ai-diagnosis-service
-
       platforms: linux/amd64,linux/arm64
+
+    secrets:
+      DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+      DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
