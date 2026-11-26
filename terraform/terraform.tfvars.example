@@ -1,0 +1,19 @@
+# Khu vực AWS triển khai (AWS Academy Learner Lab BẮT BUỘC dùng us-east-1)
+aws_region = "us-east-1"
+
+# Tên dự án
+project_name = "ai-incident-diagnosis-platform"
+environment  = "production"
+
+# Cấu hình máy chủ EC2 (t3.large: 2 vCPU, 8GB RAM, đủ chạy toàn bộ cụm)
+instance_type = "t3.large"
+volume_size   = 40
+
+# Dải IP cho phép SSH (khuyên dùng IP cá nhân hoặc giữ 0.0.0.0/0 khi làm đồ án)
+allowed_ssh_cidr = ["0.0.0.0/0"]
+
+# Tên key pair trên AWS (để trống nếu muốn Terraform tự tạo file .pem)
+existing_key_name = ""
+
+# Chỉ định AMI nếu cần (để trống để tự động tìm Ubuntu 24.04 tại us-east-1)
+custom_ami_id = ""
