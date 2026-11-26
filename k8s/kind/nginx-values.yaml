@@ -11,6 +11,16 @@ controller:
   ingressClass: # Create a new ingressClass with name nginx and set it as default ingressClass 
     name: nginx
     create: true
+  
+    # Enable Ingress status reporting
+  reportIngressStatus:
+    enable: true
+    enableLeaderElection: true
+
+  # Publish the local host address in Ingress status
+  config:
+    entries:
+      external-status-address: "127.0.0.1"
 
   service: # No need to create a LoadBalancer service if no necessary
     create: false
