@@ -45,6 +45,12 @@ cp /etc/rancher/k3s/k3s.yaml /home/ubuntu/.kube/config
 chown -R ubuntu:ubuntu /home/ubuntu/.kube
 chmod 600 /root/.kube/config /home/ubuntu/.kube/config
 
+# Export KUBECONFIG hệ thống để Helm và kubectl luôn nhận diện cluster
+export KUBECONFIG=/etc/rancher/k3s/k3s.yaml
+echo "export KUBECONFIG=/etc/rancher/k3s/k3s.yaml" >> /etc/environment
+echo "export KUBECONFIG=/etc/rancher/k3s/k3s.yaml" >> /home/ubuntu/.bashrc
+echo "export KUBECONFIG=/etc/rancher/k3s/k3s.yaml" >> /root/.bashrc
+
 # Alias kubectl cho tiện sử dụng
 ln -sf /usr/local/bin/k3s /usr/local/bin/kubectl
 
@@ -52,9 +58,11 @@ ln -sf /usr/local/bin/k3s /usr/local/bin/kubectl
 log "3. Cài đặt Helm 3..."
 curl -fsSL https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
 
-# 4. Cài đặt NGINX Ingress Controller (NodePort 30080 / 30443)
-log "4. Cài đặt NGINX Ingress Controller..."
+# Thêm sẵn tất cả các Helm repos cần thiết
 helm repo add nginx-stable https://helm.nginx.com/stable
+helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
+helm repo add grafana-community https://grafana-community.github.io/helm-charts
+helm repo add grafana https://grafana.github.io/helm-charts
 helm repo update
 
 helm upgrade --install nginx-ingress nginx-stable/nginx-ingress \
