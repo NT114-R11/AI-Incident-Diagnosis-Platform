@@ -59,7 +59,7 @@ alertmanager:
       resolve_timeout: 5m
 
     route:
-      receiver: ai-diagnosis
+      receiver: "null"
       group_by:
         - alertname
         - namespace
@@ -67,6 +67,10 @@ alertmanager:
       group_wait: 15s
       group_interval: 1m
       repeat_interval: 4h
+      routes:
+        - receiver: ai-diagnosis
+          matchers:
+            - namespace="voting-app"
 
     receivers:
       - name: ai-diagnosis
@@ -92,3 +96,16 @@ prometheus-node-exporter:
 
 kube-state-metrics:
   enabled: true
+
+# Disable control-plane scrapers not exposed separately in k3s
+kubeControllerManager:
+  enabled: false
+
+kubeScheduler:
+  enabled: false
+
+kubeProxy:
+  enabled: false
+
+kubeEtcd:
+  enabled: false

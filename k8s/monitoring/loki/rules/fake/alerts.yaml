@@ -7,7 +7,7 @@ groups:
         expr: |
           sum by (namespace, pod, container) (
             count_over_time(
-              {namespace="voting-app"}
+              {namespace="voting-app", container!~"ai-diagnosis-api|telegram-polling"}
               |~ "(?i)(exception|traceback|panic|stack trace)"
               [5m]
             )
@@ -27,7 +27,7 @@ groups:
         expr: |
           sum by (namespace, pod, container) (
             count_over_time(
-              {namespace="voting-app"}
+              {namespace="voting-app", container!~"ai-diagnosis-api|telegram-polling"}
               |~ "(?i)(error:|failed|failure|fatal)"
               [5m]
             )

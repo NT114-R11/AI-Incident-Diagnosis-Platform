@@ -12,9 +12,13 @@ data "aws_subnets" "default" {
 
 # Security Group mở các cổng dịch vụ cần thiết cho Đồ án
 resource "aws_security_group" "k3s_node_sg" {
-  name        = "${var.project_name}-sg"
+  name_prefix = "${var.project_name}-sg-"
   description = "Security group for AI Incident Diagnosis Platform on k3s"
   vpc_id      = data.aws_vpc.default.id
+
+  lifecycle {
+    create_before_destroy = true
+  }
 
   # SSH
   ingress {

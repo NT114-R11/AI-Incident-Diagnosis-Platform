@@ -18,14 +18,6 @@ log() { printf '\n[%s] %s\n' "$(date '+%H:%M:%S')" "$*"; }
 die() { echo "[ERROR] $*" >&2; exit 1; }
 
 # ==========================================================
-# Kiểm tra biến môi trường bắt buộc
-# ==========================================================
-: "${GEMINI_API_KEY:?Need to set GEMINI_API_KEY}"
-: "${TELEGRAM_BOT_TOKEN:?Need to set TELEGRAM_BOT_TOKEN}"
-: "${TELEGRAM_CHAT_ID:?Need to set TELEGRAM_CHAT_ID}"
-: "${TELEGRAM_ADMIN_IDS:?Need to set TELEGRAM_ADMIN_IDS}"
-
-# ==========================================================
 # 1. Tạo namespace
 # ==========================================================
 log "Creating namespaces..."
@@ -35,21 +27,34 @@ kubectl create namespace monitoring --dry-run=client -o yaml | kubectl apply -f 
 # ==========================================================
 # 2. Tạo Secrets (không commit lên Git)
 # ==========================================================
-log "Creating secrets..."
-
-kubectl create secret generic ai-diagnosis-secret \
-  --namespace voting-app \
-  --from-literal=GEMINI_API_KEY="${GEMINI_API_KEY}" \
-  --from-literal=TELEGRAM_BOT_TOKEN="${TELEGRAM_BOT_TOKEN}" \
-  --from-literal=TELEGRAM_CHAT_ID="${TELEGRAM_CHAT_ID}" \
-  --from-literal=TELEGRAM_ADMIN_IDS="${TELEGRAM_ADMIN_IDS}" \
-  --dry-run=client -o yaml | kubectl apply -f -
-
-log "Secrets created"
+if [[ -n "${GEMINI_API_KEY:-}" && -n "${TELEGRAM_BOT_TOKEN:-}" && -n "${TELEGRAM_CHAT_ID:-}" && -n "${TELEGRAM_ADMIN_IDS:-}" ]]; then
+  log "Creating/updating secrets..."
+  kubectl create secret generic ai-diagnosis-secret \
+    --namespace voting-app \
+    --from-literal=GEMINI_API_KEY="${GEMINI_API_KEY}" \
+    --from-literal=TELEGRAM_BOT_TOKEN="${TELEGRAM_BOT_TOKEN}" \
+    --from-literal=TELEGRAM_CHAT_ID="${TELEGRAM_CHAT_ID}" \
+    --from-literal=TELEGRAM_ADMIN_IDS="${TELEGRAM_ADMIN_IDS}" \
+    --dry-run=client -o yaml | kubectl apply -f -
+  log "Secrets created/updated"
+elif kubectl get secret ai-diagnosis-secret -n voting-app >/dev/null 2>&1; then
+  log "Secret ai-diagnosis-secret already exists in voting-app, skipping creation."
+else
+  : "${GEMINI_API_KEY:?Need to set GEMINI_API_KEY (or create secret ai-diagnosis-secret first)}"
+  : "${TELEGRAM_BOT_TOKEN:?Need to set TELEGRAM_BOT_TOKEN}"
+  : "${TELEGRAM_CHAT_ID:?Need to set TELEGRAM_CHAT_ID}"
+  : "${TELEGRAM_ADMIN_IDS:?Need to set TELEGRAM_ADMIN_IDS}"
+fi
 
 # ==========================================================
 # 3. Cài Monitoring Stack
 # ==========================================================
+log "Adding/updating Helm repos..."
+helm repo add prometheus-community https://prometheus-community.github.io/helm-charts >/dev/null 2>&1 || true
+helm repo add grafana-community https://grafana-community.github.io/helm-charts >/dev/null 2>&1 || true
+helm repo add grafana https://grafana.github.io/helm-charts >/dev/null 2>&1 || true
+helm repo update
+
 log "Installing Prometheus Stack..."
 helm upgrade --install prometheus-stack \
   prometheus-community/kube-prometheus-stack \
@@ -57,6 +62,12 @@ helm upgrade --install prometheus-stack \
   --namespace monitoring \
   -f k8s/monitoring/prometheus-stack/values-production.yaml \
   --wait --timeout 10m
+
+log "Applying Loki alert rules ConfigMap..."
+kubectl apply -k k8s/monitoring/loki
+
+log "Applying Prometheus alert rules..."
+kubectl apply -f k8s/monitoring/prometheus-stack/prometheus-rules.yaml 2>/dev/null || true
 
 log "Installing Loki..."
 helm upgrade --install loki \
@@ -73,10 +84,6 @@ helm upgrade --install alloy \
   --namespace monitoring \
   -f k8s/monitoring/alloy/values-local.yaml \
   --wait --timeout 10m
-
-# Apply Loki alert rules ConfigMap
-kubectl apply -f k8s/monitoring/loki/kustomization.yaml 2>/dev/null || true
-kubectl apply -f k8s/monitoring/loki/rules/ -n monitoring 2>/dev/null || true
 
 log "Monitoring stack installed"
 
