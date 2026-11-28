@@ -32,7 +32,7 @@ loki:
   rulerConfig:
     enable_api: true
     enable_alertmanager_v2: true
-    alertmanager_url: http://alertmanager-operated.monitoring.svc.cluster.local:9093
+    alertmanager_url: http://prometheus-stack-kube-prom-alertmanager.monitoring.svc.cluster.local:9093
     evaluation_interval: 30s
     poll_interval: 30s
     rule_path: /tmp/loki/rules
