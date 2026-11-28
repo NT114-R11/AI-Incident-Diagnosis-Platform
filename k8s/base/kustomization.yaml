@@ -31,6 +31,7 @@ resources:
   - result/result-service.yaml
 
   # AI Diagnosis Service
+  - ai-diagnosis/rbac.yaml
   - ai-diagnosis/ai-diagnosis-config.yaml
   - ai-diagnosis/ai-api-deployment.yaml
   - ai-diagnosis/ai-api-service.yaml
